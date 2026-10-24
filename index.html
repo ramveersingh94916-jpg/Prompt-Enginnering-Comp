@@ -1,17 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My First Website</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battle Ground Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      margin-top: 50px;
+    }
+    .game-container {
+      max-width: 400px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    #battle-log {
+      height: 150px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 20px;
+      text-align: left;
+      background: #fafafa;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #c0392b;
+    }
+  </style>
 </head>
 <body>
 
-    <h1>Welcome to My Website</h1>
-    <p>This is a basic paragraph of text on your brand new webpage.</p>
+  <div class="game-container">
+    <h1>Battle Ground Game</h1>
     
-    <!-- A simple link -->
-    <a href="https://google.com">Visit Google</a>
+    <div class="stats">
+      <div>Player HP: <span id="player-hp">100</span></div>
+      <div>Enemy HP: <span id="enemy-hp">100</span></div>
+    </div>
+
+    <div id="battle-log">The battle begins! Click "Attack!" to fight.<br></div>
+
+    <button id="attack-btn" onclick="attack()">Attack!</button>
+    <button onclick="resetGame()" style="background-color: #7f8c8d; margin-left: 10px;">Reset</button>
+  </div>
+
+  <script>
+    let playerHP = 100;
+    let enemyHP = 100;
+
+    const playerHpSpan = document.getElementById('player-hp');
+    const enemyHpSpan = document.getElementById('enemy-hp');
+    const battleLog = document.getElementById('battle-log');
+    const attackBtn = document.getElementById('attack-btn');
+
+    function attack() {
+      if (playerHP <= 0 || enemyHP <= 0) return;
+
+      // Random damage calculations
+      let playerDamage = Math.floor(Math.random() * 12) + 5; // Player deals 5-16 damage
+      let enemyDamage = Math.floor(Math.random() * 12) + 3;  // Enemy deals 3-14 damage
+
+      enemyHP = Math.max(0, enemyHP - playerDamage);
+      playerHP = Math.max(0, playerHP - enemyDamage);
+
+      playerHpSpan.textContent = playerHP;
+      enemyHpSpan.textContent = enemyHP;
+
+      // Log the turn
+      battleLog.innerHTML += `You hit enemy for <b>${playerDamage}</b> damage!<br>`;
+      battleLog.innerHTML += `Enemy hits you for <b>${enemyDamage}</b> damage!<br>`;
+      battleLog.scrollTop = battleLog.scrollHeight;
+
+      // Check for winner
+      if (enemyHP === 0 && playerHP === 0) {
+        battleLog.innerHTML += `<br><b>It's a draw!</b>`;
+        endGame();
+      } else if (enemyHP === 0) {
+        battleLog.innerHTML += `<br><b>You defeated the enemy! 🎉</b>`;
+        endGame();
+      } else if (playerHP === 0) {
+        battleLog.innerHTML += `<br><b>You were defeated... 💀</b>`;
+        endGame();
+      }
+    }
+
+    function endGame() {
+      attackBtn.disabled = true;
+      attackBtn.style.opacity = '0.5';
+    }
+
+    function resetGame() {
+      playerHP = 100;
+      enemyHP = 100;
+      playerHpSpan.textContent = playerHP;
+      enemyHpSpan.textContent = enemyHP;
+      battleLog.innerHTML = 'Game reset. The battle begins again!<br>';
+      attackBtn.disabled = false;
+      attackBtn.style.opacity = '1';
+    }
+  </script>
 
 </body>
 </html>
