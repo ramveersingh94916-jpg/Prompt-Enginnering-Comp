@@ -3,17 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Candy Crush Game</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Royal Stay Hotel</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: white;
+        }
+
+        /* Welcome Page */
+        #home {
+            height: 100vh;
+            background: #8b0000;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #home h1 {
+            color: gold;
+            font-size: 50px;
+        }
+
+        #home p {
+            font-size: 20px;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .gold-btn {
+            background: gold;
+            color: darkred;
+            font-weight: bold;
+        }
+
+        /* Dashboard */
+        #dashboard {
+            display: none;
+            background: #f4f9ff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #dashboard h1,
+        #dashboard h2 {
+            color: #245b9e;
+        }
+
+        .summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .box {
+            background: white;
+            color: #245b9e;
+            padding: 18px;
+            border-radius: 10px;
+            border: 1px solid #d6e5f5;
+            flex: 1;
+            min-width: 130px;
+        }
+
+        .rooms {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .room {
+            background: white;
+            padding: 15px;
+            border: 1px solid #d6e5f5;
+            border-radius: 10px;
+            color: #245b9e;
+        }
+
+        .available {
+            color: green;
+            font-weight: bold;
+        }
+
+        .occupied {
+            color: red;
+            font-weight: bold;
+        }
+
+        input {
+            padding: 9px;
+            margin: 5px;
+            max-width: 90%;
+        }
+
+        #booking, #bill {
+            background: white;
+            padding: 20px;
+            margin-top: 25px;
+            border: 1px solid #d6e5f5;
+            border-radius: 10px;
+            color: #245b9e;
+        }
+
+        #booking, #bill {
+            display: none;
+        }
+
+        .blue-btn {
+            background: #245b9e;
+            color: white;
+        }
+
+        #billOutput {
+            white-space: pre-wrap;
+            color: #222;
+            background: #f8fbff;
+            padding: 15px;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="game-container">
-        <h1>Candy Crush</h1>
-        <div class="score-board">
-            <h2>Score: <span id="score">0</span></h2>
+
+<!-- Welcome Page -->
+<div id="home">
+    <h1>ROYAL STAY</h1>
+    <p>Welcome to Our Hotel</p>
+    <p>Comfort • Luxury • Happiness</p>
+    <button class="gold-btn" onclick="openDashboard()">
+        Open Dashboard
+    </button>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+
+    <h1>Royal Stay - Manager Dashboard</h1>
+    <p>Checkout Time: 12:00 PM (Noon)</p>
+
+    <div class="summary">
+        <div class="box">
+            <h3>Total Rooms</h3>
+            <h2>25</h2>
         </div>
-        <div class="game-board" id="board"></div>
+
+        <div class="box">
+            <h3>Available Rooms</h3>
+            <h2 id="availableCount">25</h2>
+        </div>
+
+        <div class="box">
+            <h3>Occupied Rooms</h3>
+            <h2 id="occupiedCount">0</h2>
+        </div>
+
+        <div class="box">
+            <h3>Total Revenue</h3>
+            <h2 id="revenue">₹0</h2>
+        </div>
     </div>
-    <script src="app.js"></script>
+
+    <h2>All Rooms</h2>
+
+    <div class="rooms" id="roomList"></div>
+
+    <!-- Booking Form -->
+    <div id="booking">
+        <h2>Book a Room</h2>
+
+        <form id="bookingForm">
+            <input type="hidden" id="roomNumber">
+
+            <label>Guest Name:</label><br>
+            <input type="text" id="guestName" required><br>
+
+            <label>Check-in Date:</label><br>
+            <input type="date" id="checkin" required><br>
+
+            <label>Number of Nights:</label><br>
+            <input type="number" id="nights" min="1" value="1" required><br>
+
+            <button type="submit" class="blue-btn">
+                Confirm Booking
+            </button>
+
+            <button type="button" onclick="closeForms()">
+                Cancel
+            </button>
+        </form>
+    </div>
+
+    <!-- Bill Section -->
+    <div id="bill">
+        <h2>Guest Bill</h2>
+        <div id="billOutput"></div>
+
+        <button class="blue-btn" onclick="window.print()">
+            Print Bill
+        </button>
+
+        <button onclick="closeForms()">Close</button>
+    </div>
+
+</div>
+
+<script>
+    let rooms = [];
+    let revenue = 0;
+
+    // Create 25 rooms
+    for (let i = 1; i <= 25; i++) {
+        rooms.push({
+            number: i,
+            price: 2000,
+            guest: "",
+            checkin: "",
+            nights: 0,
+            checkout: ""
+        });
+    }
+
+    function openDashboard() {
+        document.getElementById("home").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+        displayRooms();
+    }
+
+    // Display all rooms
+    function displayRooms() {
+        let roomList = document.getElementById("roomList");
+        roomList.innerHTML = "";
+
+        let available = 0;
+        let occupied = 0;
+
+        rooms.forEach(function(room) {
+            let status = room.guest ? "Occupied" : "Available";
+
+            if (room.guest) {
+                occupied++;
+            } else {
+                available++;
+            }
+
+            roomList.innerHTML += `
+                <div class="room">
+                    <h3>Room ${room.number}</h3>
+
+                    <p class="${room.guest ? 'occupied' : 'available'}">
+                        ${status}
+                    </p>
+
+                    <p>Price: ₹${room.price} / night</p>
+
+                    ${room.guest ? `
+                        <p>Guest: ${room.guest}</p>
+                        <p>Checkout: ${room.checkout} at 12 PM</p>
+
+                        <button class="blue-btn"
+                            onclick="checkoutRoom(${room.number})">
+                            Checkout & Bill
+                        </button>
+                    ` : `
+                        <button class="blue-btn"
+                            onclick="bookRoom(${room.number})">
+                            Book Room
+                        </button>
+                    `}
+                </div>
+            `;
+        });
+
+        document.getElementById("availableCount").innerText = available;
+        document.getElementById("occupiedCount").innerText = occupied;
+        document.getElementById("revenue").innerText = "₹" + revenue;
+    }
+
+    // Open booking form
+    function bookRoom(number) {
+        document.getElementById("booking").style.display = "block";
+        document.getElementById("bill").style.display = "none";
+        document.getElementById("roomNumber").value = number;
+        document.getElementById("checkin").value =
+            new Date().toISOString().split("T")[0];
+
+        document.getElementById("booking").scrollIntoView();
+    }
+
+    // Save booking
+    document.getElementById("bookingForm").addEventListener(
+        "submit", function(event) {
+            event.preventDefault();
+
+            let number = Number(
+                document.getElementById("roomNumber").value
+            );
+
+            let room = rooms[number - 1];
+
+            let guest = document.getElementById("guestName").value;
+            let checkin = document.getElementById("checkin").value;
+            let nights = Number(
+                document.getElementById("nights").value
+            );
+
+            if (room.guest !== "") {
+                alert("Room is already occupied!");
+                return;
+            }
+
+            if (!guest.trim() || nights < 1) {
+                alert("Enter valid booking details.");
+                return;
+            }
+
+            let date = new Date(checkin + "T12:00:00");
+            date.setDate(date.getDate() + nights);
+
+            room.guest = guest.trim();
+            room.checkin = checkin;
+            room.nights = nights;
+            room.checkout = date.toLocaleDateString("en-IN");
+
+            document.getElementById("booking").style.display = "none";
+
+            displayRooms();
+            alert("Room booked successfully!");
+        }
+    );
+
+    // Checkout and generate bill
+    function checkoutRoom(number) {
+        let room = rooms[number - 1];
+
+        let total = room.price * room.nights;
+
+        let billText =
+            "ROYAL STAY HOTEL\n" +
+            "------------------------------\n" +
+            "Room Number: " + room.number + "\n" +
+            "Guest Name: " + room.guest + "\n" +
+            "Check-in Date: " + room.checkin + "\n" +
+            "Checkout Date: " + room.checkout + " at 12:00 PM\n" +
+            "Number of Nights: " + room.nights + "\n" +
+            "Price Per Night: ₹" + room.price + "\n" +
+            "------------------------------\n" +
+            "TOTAL BILL: ₹" + total + "\n" +
+            "Thank you for staying with us!";
+
+        document.getElementById("billOutput").innerText = billText;
+        document.getElementById("bill").style.display = "block";
+        document.getElementById("booking").style.display = "none";
+
+        if (confirm("Total bill: ₹" + total +
+                    "\nConfirm checkout?")) {
+            revenue += total;
+
+            room.guest = "";
+            room.checkin = "";
+            room.nights = 0;
+            room.checkout = "";
+
+            displayRooms();
+        }
+
+        document.getElementById("bill").scrollIntoView();
+    }
+
+    function closeForms() {
+        document.getElementById("booking").style.display = "none";
+        document.getElementById("bill").style.display = "none";
+    }
+</script>
+
 </body>
 </html>
